@@ -50,3 +50,77 @@ def calculate_average_time(timestamps):
     else:
         return 0  # If only one event, average time is 0
 
+def load_statistics_from_csv(csv_filename):
+    """
+    Load statistics from a CSV file.
+
+    Parameters:
+    - csv_filename (str): The filename of the CSV file containing statistics.
+
+    Returns:
+    - dict: A dictionary containing event types as keys and average times as values.
+    """
+    with open(csv_filename, 'r') as file:
+        reader = csv.DictReader(file)
+        return {row['event_type']: float(row['average_time']) for row in reader}
+
+def save_statistics_to_csv(csv_filename, average_times):
+    """
+    Save statistics to a CSV file.
+
+    Parameters:
+    - csv_filename (str): The filename of the CSV file to save statistics to.
+    - average_times (dict): A dictionary containing event types as keys and average times as values.
+    """
+    os.makedirs('statistics', exist_ok=True)
+    with open(csv_filename, 'w', newline='') as file:
+        writer = csv.DictWriter(file, fieldnames=['event_type', 'average_time'])
+        writer.writeheader()
+        for event_type, avg_time in average_times.items():
+            writer.writerow({'event_type': event_type, 'average_time': avg_time})
+
+def fetch_and_calculate_statistics(repo):
+    """
+    Fetch events from GitHub and calculate statistics.
+
+    Parameters:
+    - repo (GitHubRepository): The GitHub repository object.
+
+    Returns:
+    - dict: A dictionary containing event types as keys and average times as values.
+    """
+    repo.fetch_github_events()
+    data = repo.get_data()
+    grouped_events = group_event_by_type(data)
+    
+    # Calculate average times for each event type
+    average_times = {}
+    for event_type, timestamps in grouped_events.items():
+        average_time = calculate_average_time(timestamps)
+        if average_time != 0:  # Exclude event types with an average time of 0
+            average_times[event_type] = average_time
+    
+    return average_times
+
+def get_statistics(repositories):
+    """
+    Get statistics for a list of GitHub repositories.
+
+    Parameters:
+    - repositories (list): A list of GitHubRepository objects.
+
+    Returns:
+    - list: A list of dictionaries, each containing repository information and its associated statistics.
+    """
+    statistics = []
+    # check if data has been added before 
+    for repo in repositories:
+        csv_filename = f"statistics/{repo.username}_{repo.repo_name}_statistics.csv"
+        if os.path.exists(csv_filename):
+            average_times = load_statistics_from_csv(csv_filename)
+        else:
+            average_times = fetch_and_calculate_statistics(repo)
+            save_statistics_to_csv(csv_filename, average_times)
+
+        statistics.append({'repository': repo, 'average_times': average_times})
+    return statistics
