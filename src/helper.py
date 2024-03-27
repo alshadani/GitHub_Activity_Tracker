@@ -4,6 +4,19 @@ from itertools import groupby
 import os 
 import csv 
 
+'''Utilities for processing .csv files
+   A .csv file is created for each repository. 
+   file in the statistics folder, which can then be 
+   can be read. 
+   
+   Another good solution would be to create only one 
+   .csv file, but I decided to make it separate, because
+    in some cases it can be more convinient to work with data
+    as the app tracks only up to 5 repositories
+    
+    To fetch data from the repositories again just delete
+    folder statistics.'''
+
 def group_event_by_type(events):
     """
     Group events by their type.
@@ -48,7 +61,8 @@ def calculate_average_time(timestamps):
         average_time = sum(time_diffs) / len(time_diffs)
         return average_time
     else:
-        return 0  # If only one event, average time is 0
+        # If only one event, average time is 0
+        return 0 
 
 def load_statistics_from_csv(csv_filename):
     """
@@ -70,14 +84,34 @@ def save_statistics_to_csv(csv_filename, average_times):
 
     Parameters:
     - csv_filename (str): The filename of the CSV file to save statistics to.
+    - username (str): The GitHub username of the repository owner.
+    - repo_name (str): The name of the GitHub repository.
     - average_times (dict): A dictionary containing event types as keys and average times as values.
     """
+
+    if average_times == []:
+        return 
+    
     os.makedirs('statistics', exist_ok=True)
-    with open(csv_filename, 'w', newline='') as file:
-        writer = csv.DictWriter(file, fieldnames=['event_type', 'average_time'])
-        writer.writeheader()
-        for event_type, avg_time in average_times.items():
-            writer.writerow({'event_type': event_type, 'average_time': avg_time})
+    # Check if CSV file already exists
+    if os.path.exists(csv_filename):
+        # Load existing statistics
+        existing_stats = load_statistics_from_csv(csv_filename)
+        # Update existing statistics with new data
+        existing_stats.update(average_times)
+        # Write updated statistics to the CSV file
+        with open(csv_filename, 'w', newline='') as file:
+            writer = csv.DictWriter(file, fieldnames=['event_type', 'average_time'])
+            writer.writeheader()
+            for event_type, avg_time in existing_stats.items():
+                writer.writerow({'event_type': event_type, 'average_time': avg_time})
+    else:
+        # Create new CSV file and save statistics
+        with open(csv_filename, 'w', newline='') as file:
+            writer = csv.DictWriter(file, fieldnames=['event_type', 'average_time'])
+            writer.writeheader()
+            for event_type, avg_time in average_times.items():
+                writer.writerow({'event_type': event_type, 'average_time': avg_time})
 
 def fetch_and_calculate_statistics(repo):
     """

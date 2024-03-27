@@ -4,7 +4,7 @@ from repository import GitHubRepository
 
 app = Flask(__name__)
 
-
+'''REST API with Python Flask'''
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == 'POST':

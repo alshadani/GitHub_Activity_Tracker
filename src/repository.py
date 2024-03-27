@@ -1,6 +1,11 @@
 from datetime import datetime, timedelta
 import requests
 
+'''Repository class for fetching and pre 
+   preprocessing events, may be extended in the 
+   in the future by possibly adding new 
+   data from the events.'''
+
 class GitHubRepository:
     def __init__(self, username, repo_name):
         """
@@ -30,7 +35,9 @@ class GitHubRepository:
             self.events = response.json()
         else:
             print(f"Failed to fetch events: {response.status_code} - {response.reason}")
-    
+            self.events = []
+
+
     def get_weekly_events(self):
         """
         Retrieve events from the past week.
