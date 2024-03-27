@@ -1,0 +1,51 @@
+<!-- statistics.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub Activity Statistics</title>
+    <style>
+        table {
+            width: 50%;
+            margin: auto;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <h1>GitHub Activity Statistics</h1>
+    {% if statistics %}
+        {% for stat in statistics %}
+            <h2>{{ stat.repository.username }} / {{ stat.repository.repo_name }}</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Event Type</th>
+                        <th>Average Time (hours:minutes)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for event_type, avg_time in stat.average_times.items() %}
+                        <tr>
+                            <td>{{ event_type }}</td>
+                            <td>{{ '%02d:%02d' | format(avg_time // 3600, (avg_time % 3600) // 60) }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endfor %}
+    {% else %}
+        <p>No statistics available.</p>
+    {% endif %}
+</body>
+</html>
